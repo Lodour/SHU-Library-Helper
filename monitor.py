@@ -20,17 +20,20 @@ def query(doc_number, username, campus, status):
     # 获取状态
     html_content = query_request.content.decode('utf-8')
     book_status = re.findall(r'>(\d{8}|在架上)', html_content)
-    book_campus = re.findall(r'>(.*?)流通库', html_content)
+    book_campus = re.findall(r'分馆：</div></td>\r\n<td>(.*?)</td>', html_content)
 
     # 获取书名
     detail_request = session.get(detail_url, params=payload)
     html_content = detail_request.content.decode('utf-8')
     book_title = re.findall(r'<b>(.*?)<', html_content)[0]
 
-    # 检索
-    for new_status, new_campus in zip(book_status, book_campus):
-        if new_campus == campus and new_status != status:
-            return (True, book_title, new_status)
+    # 筛选出特定校区的状态
+    zip_books = zip(book_status, book_campus)
+    campus_status = [st for st, camp in zip_books if campus in camp]
+    available = '在架上' in campus_status
+    new_status = (min(campus_status), '在架上')[available]
+    if new_status != status:
+        return (True, book_title, new_status)
     return (False,)
 
 

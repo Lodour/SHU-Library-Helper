@@ -4,3 +4,7 @@ note.sh
 shulib.db
 
 shulib.log
+
+*.pyc
+
+*.log
